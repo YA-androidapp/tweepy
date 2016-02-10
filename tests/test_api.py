@@ -294,11 +294,24 @@ class TweepyAPITests(TweepyTestCase):
         self.api.create_favorite(4901062372)
         self.api.destroy_favorite(4901062372)
 
+    @tape.use_cassette('testcreatedestroymute.json')
+    def testcreatedestroymute(self):
+        self.api.create_mute('twitter')
+        self.api.destroy_mute('twitter')
+
     @tape.use_cassette('testcreatedestroyblock.json')
     def testcreatedestroyblock(self):
         self.api.create_block('twitter')
         self.api.destroy_block('twitter')
         self.api.create_friendship('twitter') # restore
+
+    @tape.use_cassette('testmutes.json')
+    def testmutes(self):
+        self.api.mutes()
+
+    @tape.use_cassette('testmutesids.json')
+    def testmutesids(self):
+        self.api.mutes_ids()
 
     @tape.use_cassette('testblocks.json')
     def testblocks(self):

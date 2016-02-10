@@ -777,6 +777,57 @@ class API(object):
         )
 
     @property
+    def create_mute(self):
+        """ :reference: https://dev.twitter.com/rest/reference/post/mutes/users/create
+            :allowed_param:'id', 'user_id', 'screen_name'
+        """
+        return bind_api(
+            api=self,
+            path='/mutes/create.json',
+            method='POST',
+            payload_type='user',
+            allowed_param=['id', 'user_id', 'screen_name'],
+            require_auth=True
+        )
+
+    @property
+    def destroy_mute(self):
+        """ :reference: https://dev.twitter.com/rest/reference/post/mutes/users/destroy
+            :allowed_param:'id', 'user_id', 'screen_name'
+        """
+        return bind_api(
+            api=self,
+            path='/mutes/destroy.json',
+            method='POST',
+            payload_type='user',
+            allowed_param=['id', 'user_id', 'screen_name'],
+            require_auth=True
+        )
+
+    @property
+    def mutes(self):
+        """ :reference: https://dev.twitter.com/rest/reference/get/mutes/users/list
+            :allowed_param:'cursor', 'skip_status'
+        """
+        return bind_api(
+            api=self,
+            path='/mutes/list.json',
+            payload_type='user', payload_list=True,
+            allowed_param=['cursor', 'skip_status'],
+            require_auth=True
+        )
+
+    @property
+    def mutes_ids(self):
+        """ :reference: https://dev.twitter.com/rest/reference/get/mutes/users/ids """
+        return bind_api(
+            api=self,
+            path='/mutes/ids.json',
+            payload_type='json',
+            require_auth=True
+        )
+
+    @property
     def create_block(self):
         """ :reference: https://dev.twitter.com/rest/reference/post/blocks/create
             :allowed_param:'id', 'user_id', 'screen_name'
