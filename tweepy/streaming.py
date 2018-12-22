@@ -9,6 +9,7 @@ from __future__ import absolute_import, print_function
 import logging
 import re
 import requests
+import sys
 from requests.exceptions import Timeout
 from threading import Thread
 from time import sleep
@@ -161,6 +162,7 @@ class ReadBuffer(object):
                 return self._pop(length)
             read_len = max(self._chunk_size, length - len(self._buffer))
             self._buffer += self._stream.read(read_len)
+        return six.b('')
 
     def read_line(self, sep=six.b('\n')):
         """Read the data stream until a given separator is found (default \n)
@@ -177,6 +179,7 @@ class ReadBuffer(object):
             else:
                 start = len(self._buffer)
             self._buffer += self._stream.read(self._chunk_size)
+        return six.b('')
 
     def _pop(self, length):
         r = self._buffer[:length]
@@ -230,7 +233,7 @@ class Stream(object):
         # Connect and process the stream
         error_counter = 0
         resp = None
-        exception = None
+        exc_info = None
         while self.running:
             if self.retry_count is not None:
                 if error_counter > self.retry_count:
@@ -267,7 +270,7 @@ class Stream(object):
                 # If it's not time out treat it like any other exception
                 if isinstance(exc, ssl.SSLError):
                     if not (exc.args and 'timed out' in str(exc.args[0])):
-                        exception = exc
+                        exc_info = sys.exc_info()
                         break
                 if self.listener.on_timeout() is False:
                     break
@@ -277,7 +280,7 @@ class Stream(object):
                 self.snooze_time = min(self.snooze_time + self.snooze_time_step,
                                        self.snooze_time_cap)
             except Exception as exc:
-                exception = exc
+                exc_info = sys.exc_info()
                 # any other exception is fatal, so kill loop
                 break
 
@@ -288,10 +291,10 @@ class Stream(object):
 
         self.new_session()
 
-        if exception:
+        if exc_info:
             # call a handler first so that the exception can be logged.
-            self.listener.on_exception(exception)
-            raise exception
+            self.listener.on_exception(exc_info[1])
+            six.reraise(*exc_info)
 
     def _data(self, data):
         if self.listener.on_data(data) is False:
@@ -310,17 +313,17 @@ class Stream(object):
         while self.running and not resp.raw.closed:
             length = 0
             while not resp.raw.closed:
-                line = buf.read_line().strip()
+                line = buf.read_line()
                 if not line:
                     self.listener.keep_alive()  # keep-alive new lines are expected
-                elif line.isdigit():
+                elif line.strip().isdigit():
                     length = int(line)
                     break
                 else:
                     raise TweepError('Expecting length, unexpected value found')
 
             next_status_obj = buf.read_len(length)
-            if self.running:
+            if self.running and next_status_obj:
                 self._data(next_status_obj)
 
             # # Note: keep-alive newlines might be inserted before each length value.
@@ -409,13 +412,15 @@ class Stream(object):
         self.url = '/%s/statuses/retweet.json' % STREAM_VERSION
         self._start(async)
 
-    def sample(self, async=False, languages=None):
+    def sample(self, async=False, languages=None, stall_warnings=False):
         self.session.params = {'delimited': 'length'}
         if self.running:
             raise TweepError('Stream object already connected!')
         self.url = '/%s/statuses/sample.json' % STREAM_VERSION
         if languages:
             self.session.params['language'] = ','.join(map(str, languages))
+        if stall_warnings:
+            self.session.params['stall_warnings'] = 'true'
         self._start(async)
 
     def filter(self, follow=None, track=None, async=False, locations=None,
@@ -439,7 +444,7 @@ class Stream(object):
         if languages:
             self.body['language'] = u','.join(map(str, languages))
         if filter_level:
-            self.body['filter_level'] = unicode(filter_level, encoding)
+            self.body['filter_level'] = filter_level.encode(encoding)
         self.session.params = {'delimited': 'length'}
         self.host = 'stream.twitter.com'
         self._start(async)

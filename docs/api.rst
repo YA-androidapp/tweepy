@@ -47,15 +47,15 @@ Timeline methods
    :param page: |page|
    :rtype: list of :class:`Status` objects
 
-.. method:: API.statuses_lookup(id, [include_entities], [trim_user], [map])
+.. method:: API.statuses_lookup(id_, [include_entities], [trim_user], [map_])
 
    Returns full Tweet objects for up to 100 tweets per request, specified by the
    `id` parameter.
 
-   :param id: A list of Tweet IDs to lookup, up to 100
+   :param id_: A list of Tweet IDs to lookup, up to 100
    :param include_entities: A boolean indicating whether or not to include [entities](https://dev.twitter.com/docs/entities) in the returned tweets. Defaults to False.
    :param trim_user: A boolean indicating if user IDs should be provided, instead of full user information. Defaults to False.
-   :param map: A boolean indicating whether or not to include tweets that cannot be shown, but with a value of None. Defaults to False.
+   :param map_: A boolean indicating whether or not to include tweets that cannot be shown, but with a value of None. Defaults to False.
    :rtype: list of :class:`Status` objects
 
 
@@ -86,6 +86,14 @@ Timeline methods
    :param page: |page|
    :rtype: list of :class:`Status` objects
 
+.. method:: API.mentions_timeline([since_id], [max_id], [count])
+
+   Returns the 20 most recent mentions, including retweets. 
+
+   :param since_id: |since_id|
+   :param max_id: |max_id|
+   :param count: |count|
+   :rtype: list of :class:`Status` objects
 
 Status methods
 --------------
@@ -98,13 +106,14 @@ Status methods
    :rtype: :class:`Status` object
 
 
-.. method:: API.update_status(status, [in_reply_to_status_id], [lat], [long], [source], [place_id])
+.. method:: API.update_status(status, [in_reply_to_status_id], [auto_populate_reply_metadata], [lat], [long], [source], [place_id])
 
    Update the authenticated user's status. Statuses that are duplicates
    or too long will be silently ignored.
 
    :param status: The text of your status update.
    :param in_reply_to_status_id: The ID of an existing status that the update is in reply to.
+   :param auto_populate_reply_metadata: Whether to automatically include the @mentions in the status metadata.
    :param lat: The location's latitude that this tweet refers to.
    :param long: The location's longitude that this tweet refers to.
    :param source: Source of the update. Only supported by Identi.ca. Twitter ignores this parameter.
@@ -112,7 +121,7 @@ Status methods
    :rtype: :class:`Status` object
 
 
-.. method:: API.update_with_media(filename, [status], [in_reply_to_status_id], [lat], [long], [source], [place_id], [file])
+.. method:: API.update_with_media(filename, [status], [in_reply_to_status_id], [auto_populate_reply_metadata], [lat], [long], [source], [place_id], [file])
 
    Update the authenticated user's status. Statuses that are duplicates
    or too long will be silently ignored.
@@ -120,6 +129,7 @@ Status methods
    :param filename: The filename of the image to upload. This will automatically be opened unless `file` is specified
    :param status: The text of your status update.
    :param in_reply_to_status_id: The ID of an existing status that the update is in reply to.
+   :param auto_populate_reply_metadata: Whether to automatically include the @mentions in the status metadata.
    :param lat: The location's latitude that this tweet refers to.
    :param long: The location's longitude that this tweet refers to.
    :param source: Source of the update. Only supported by Identi.ca. Twitter ignores this parameter.
@@ -291,16 +301,6 @@ Friendship Methods
    :param screen_name: |screen_name|
    :param user_id: |user_id|
    :rtype: :class:`User` object
-
-
-.. method:: API.exists_friendship(user_a, user_b)
-
-   Checks if a friendship exists between two users. Will return True if
-   user_a follows user_b, otherwise False.
-
-   :param user_a: The ID or screen_name of the subject user.
-   :param user_b: The ID or screen_name of the user to test for following.
-   :rtype: True/False
 
 
 .. method:: API.show_friendship(source_id/source_screen_name, target_id/target_screen_name)

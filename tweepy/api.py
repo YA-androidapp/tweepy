@@ -114,7 +114,7 @@ class API(object):
     @property
     def user_timeline(self):
         """ :reference: https://dev.twitter.com/rest/reference/get/statuses/user_timeline
-            :allowed_param:'id', 'user_id', 'screen_name', 'since_id'
+            :allowed_param:'id', 'user_id', 'screen_name', 'since_id', 'max_id', 'count', 'include_rts'
         """
         return bind_api(
             api=self,
@@ -177,7 +177,7 @@ class API(object):
 
     def update_status(self, *args, **kwargs):
         """ :reference: https://dev.twitter.com/rest/reference/post/statuses/update
-            :allowed_param:'status', 'in_reply_to_status_id', 'lat', 'long', 'source', 'place_id', 'display_coordinates', 'media_ids'
+            :allowed_param:'status', 'in_reply_to_status_id', 'in_reply_to_status_id_str', 'auto_populate_reply_metadata', 'lat', 'long', 'source', 'place_id', 'display_coordinates', 'media_ids'
         """
         post_data = {}
         media_ids = kwargs.pop("media_ids", None)
@@ -189,7 +189,7 @@ class API(object):
             path='/statuses/update.json',
             method='POST',
             payload_type='status',
-            allowed_param=['status', 'in_reply_to_status_id', 'lat', 'long', 'source', 'place_id', 'display_coordinates'],
+            allowed_param=['status', 'in_reply_to_status_id', 'in_reply_to_status_id_str', 'auto_populate_reply_metadata', 'lat', 'long', 'source', 'place_id', 'display_coordinates'],
             require_auth=True
         )(post_data=post_data, *args, **kwargs)
 
@@ -198,7 +198,7 @@ class API(object):
             :allowed_param:
         """
         f = kwargs.pop('file', None)
-        headers, post_data = API._pack_image(filename, 3072, form_field='media', f=f)
+        headers, post_data = API._pack_image(filename, 4883, form_field='media', f=f)
         kwargs.update({'headers': headers, 'post_data': post_data})
 
         return bind_api(
@@ -213,7 +213,7 @@ class API(object):
 
     def update_with_media(self, filename, *args, **kwargs):
         """ :reference: https://dev.twitter.com/rest/reference/post/statuses/update_with_media
-            :allowed_param:'status', 'possibly_sensitive', 'in_reply_to_status_id', 'lat', 'long', 'place_id', 'display_coordinates'
+            :allowed_param:'status', 'possibly_sensitive', 'in_reply_to_status_id', 'in_reply_to_status_id_str', 'auto_populate_reply_metadata', 'lat', 'long', 'place_id', 'display_coordinates'
         """
         f = kwargs.pop('file', None)
         headers, post_data = API._pack_image(filename, 3072, form_field='media[]', f=f)
@@ -225,8 +225,8 @@ class API(object):
             method='POST',
             payload_type='status',
             allowed_param=[
-                'status', 'possibly_sensitive', 'in_reply_to_status_id', 'lat', 'long',
-                'place_id', 'display_coordinates'
+                'status', 'possibly_sensitive', 'in_reply_to_status_id', 'in_reply_to_status_id_str',
+                'auto_populate_reply_metadata', 'lat', 'long', 'place_id', 'display_coordinates'
             ],
             require_auth=True
         )(*args, **kwargs)
@@ -331,6 +331,7 @@ class API(object):
             path='/users/lookup.json',
             payload_type='user', payload_list=True,
             method='POST',
+            allowed_param=['user_id', 'screen_name', 'include_entities']
         )
 
     def me(self):
@@ -487,7 +488,7 @@ class API(object):
     @property
     def show_friendship(self):
         """ :reference: https://dev.twitter.com/rest/reference/get/friendships/show
-            :allowed_param:'source_id', 'source_screen_name'
+            :allowed_param:'source_id', 'source_screen_name', 'target_id', 'target_screen_name'
         """
         return bind_api(
             api=self,
@@ -661,24 +662,6 @@ class API(object):
             require_auth=True
         )
 
-    @property
-    def update_profile_colors(self):
-        """ :reference: https://dev.twitter.com/docs/api/1.1/post/account/update_profile_colors
-            :allowed_param:'profile_background_color', 'profile_text_color',
-             'profile_link_color', 'profile_sidebar_fill_color',
-             'profile_sidebar_border_color'],
-        """
-        return bind_api(
-            api=self,
-            path='/account/update_profile_colors.json',
-            method='POST',
-            payload_type='user',
-            allowed_param=['profile_background_color', 'profile_text_color',
-                           'profile_link_color', 'profile_sidebar_fill_color',
-                           'profile_sidebar_border_color'],
-            require_auth=True
-        )
-
     def update_profile_image(self, filename, file_=None):
         """ :reference: https://dev.twitter.com/rest/reference/post/account/update_profile_image
             :allowed_param:'include_entities', 'skip_status'
@@ -725,14 +708,14 @@ class API(object):
     @property
     def update_profile(self):
         """ :reference: https://dev.twitter.com/rest/reference/post/account/update_profile
-            :allowed_param:'name', 'url', 'location', 'description'
+            :allowed_param:'name', 'url', 'location', 'description', 'profile_link_color'
         """
         return bind_api(
             api=self,
             path='/account/update_profile.json',
             method='POST',
             payload_type='user',
-            allowed_param=['name', 'url', 'location', 'description'],
+            allowed_param=['name', 'url', 'location', 'description', 'profile_link_color'],
             require_auth=True
         )
 
@@ -1259,7 +1242,7 @@ class API(object):
         """ :reference: https://dev.twitter.com/rest/reference/get/search/tweets
             :allowed_param:'q', 'lang', 'locale', 'since_id', 'geocode',
              'max_id', 'since', 'until', 'result_type', 'count',
-              'include_entities', 'from', 'to', 'source']
+              'include_entities', 'from', 'to', 'source'
         """
         return bind_api(
             api=self,
